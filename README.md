@@ -1,5 +1,4 @@
 # boilerplate-website-gulp
----
 
 A boilerplate for creating websites/web apps with the help of task runners and optimization for best performance!
 
