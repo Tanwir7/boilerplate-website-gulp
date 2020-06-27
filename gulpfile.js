@@ -13,6 +13,7 @@ var gulp = require('gulp'),
     lineec = require('gulp-line-ending-corrector'),
     imagemin = require('gulp-imagemin'),
     changed = require('gulp-changed');
+    postcssunss = require('postcss-uncss')
 
 
 // File Path Variables
@@ -29,9 +30,14 @@ var vendor = {
         files.compiledCSS
     ],
     js: [
-        'node_modules/bootstrap/dist/js/bootstrap.bundle.js',
+        'node_modules/bootstrap/dist/js/bootstrap.min.js',
         files.jsPath
     ]
+}
+
+const options = {
+    html:['./*.html'],
+    ignore:['img[data-loaded="true"]', '[data-loaded="true"] img', '.show', '.collapsing']
 }
 
 // Load Image files
@@ -58,14 +64,14 @@ function cssConcat() {
     .pipe(sass(
         {outputStyle:'expanded'}
     ).on('error',sass.logError))
-    .pipe(postcss([autoprefixer(),cssnano()]))
+    .pipe(postcss([autoprefixer(), cssnano()]))
     .pipe(sourcemaps.write('.'))
     .pipe(lineec())
     .pipe(gulp.dest('./dist/css'))
     .pipe(browserSync.stream())
 }
 
-// Merge Custom and Additional JS and convert it to ES5 for support and minify
+// Merge Vendor JS and convert it to ES5 for support and minify
 function jsTask(){
     return gulp.src(vendor.js)
         .pipe(concat('script.min.js'))
@@ -75,6 +81,9 @@ function jsTask(){
         .pipe(uglify())
         .pipe(gulp.dest('./dist/js'))
 }
+
+// , postcssunss(options)
+
 
 function imgTask(){
     return gulp.src(imgSRC)
@@ -90,7 +99,7 @@ function imgTask(){
 // CacheBusting Task
 var cbString = new Date().getTime();
 function cacheBustTask(){
-    return gulp.src('index.html')
+    return gulp.src(options.html)
         .pipe(replace(/cb=\d+/g, 'cb=' + cbString))
         .pipe(gulp.dest('.'))
 }
@@ -105,7 +114,7 @@ function watchTask(){
     gulp.watch(files.scssPath, gulp.series(scssTask,cssConcat));
     gulp.watch(files.jsPath, jsTask);
     gulp.watch(imgSRC,imgTask);
-    gulp.watch(['./index.html', './dist/js/script.min.js']).on('change',browserSync.reload);
+    gulp.watch(['./*.html', './dist/js/script.min.js']).on('change',browserSync.reload);
 }
 
 // Default Task (Run)
